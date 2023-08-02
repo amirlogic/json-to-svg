@@ -85,25 +85,97 @@ const svgen = (d3,jsondata={})=>{
     }
     else if( jsondata?.target === 'histogram'){
 
+        let size = ( jsondata.hasOwnProperty('size') ) ? parseFloat(jsondata.size) : 1;
+
         const dmax = d3.max(jsondata?.dataset);
 
+        let animate = ( jsondata.hasOwnProperty('animate') ) ? jsondata.animate : false;
+
+        if(animate){
+
+            function enterAnim(enter){
+
+                enter.append('rect')
+                    .attr('x', (d, i) => i * (jsondata?.intergap+jsondata?.barwidth) * size)
+                    .attr('width', jsondata?.barwidth*size)
+                    .attr("y", d =>(dmax - d)*size)
+                    .attr("height", d => d*size)
+                    .attr("class", 'bar')
+                
+
+                .call( rect => 
+                    rect.append('animate')
+                    .attr('attributeName', "height")
+                    .attr('values', (d)=> `0;1;${ d*size }` )
+                    .attr('keyTimes', (d,i)=> `0;${Math.trunc(1000*(1-(1/(3*i+3))))/1000};1` ) // ="0; 0.25; 0.5; 0.75; 1"
+                    .attr('dur', (d,i)=>`${i*2+2}s`)  
+                    .attr('repeatcount', 1)
+                    
+                )
+
+                .call( rect => 
+                    rect.append('animate')
+                    .attr('attributeName', "y")
+                    .attr('values', (d)=> `${dmax*size};${dmax*size};${ (dmax - d)*size }` )
+                    .attr('keyTimes', (d,i)=> `0;${Math.trunc(1000*(1-(1/(3*i+3))))/1000};1` )
+                    .attr('dur', (d,i)=>`${i*2+2}s`)  
+                    .attr('repeatcount', 1)
+                )
+            }
+
+            svg.append('g')
+                .attr('fill', jsondata?.color)
+                .attr('transform', `translate(${200/size},${200/size})`)
+            .selectAll('rect')
+            .data(jsondata?.dataset)
+            .join(
+                enter=>enterAnim(enter)
+            )
+            /* .selectAll('animate')
+            .data([d => d], (h,i)=>{ return { "begin":i, "height":h} } )        // 
+            .join( 
+                enter=>enter.append('animate')
+                    .attr('attributeName', "height")
+                    .attr('values', (d)=> `0;${ d.height }` )   // `0;50`   function(d){ return `0;${ d }` }
+                    .attr('begin', d => `2s` ) // `${d.begin}s`   () =>{ indx++; `${ indx }s`; }
+                    .attr('dur', "1s")  
+                    .attr('repeatcount', 1)
+            ) */
+        }
+        else{
+
+            svg.append('g')
+                .attr('fill', jsondata?.color)
+                .attr('transform', `translate(${200/size},${200/size})`)
+            .selectAll('rect')
+            .data(jsondata?.dataset)
+            .join('rect')
+                .attr('x', (d, i) => i * (jsondata?.intergap+jsondata?.barwidth) * size)
+                .attr('width', jsondata?.barwidth*size)
+                .attr("y", d =>(dmax - d)*size)
+                .attr("height", d => d*size)
+        }
+
         svg.append('g')
-		.attr('fill', jsondata?.color)
-		.attr('transform', `translate(200,200)`)
-		.selectAll('rect')
-		.data(jsondata?.dataset)
-		.join('rect')
-		.attr('x', (d, i) => i * (jsondata?.intergap+jsondata?.barwidth))
-		.attr('width', jsondata?.barwidth)
-		.attr("y", d =>(dmax - d))
-		.attr("height", d => d)
+            .attr('fill', jsondata?.color)
+            .attr('transform', `translate(${200/size},${200/size})`)
+        .selectAll('text')
+        .data(jsondata?.dataset)
+        .join('text')
+            .attr('x', (d, i) => i * (jsondata?.intergap+jsondata?.barwidth) * size)
+            .attr("y", d =>(dmax - d)*size - 20)
+            .style("font-size", 10+size*2)
+            .style('font-family', 'sans-serif')
+            .text(d => d)
 		
 
     }
+
     
     console.log(svg.node().outerHTML)
 
     return svg.node().outerHTML;
 }
 
-module.exports = { svgen }
+
+module.exports = svgen;
