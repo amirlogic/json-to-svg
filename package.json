@@ -1,6 +1,6 @@
 {
   "name": "json-to-svg",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Generate SVG from JSON",
   "main": "index.js",
   "scripts": {

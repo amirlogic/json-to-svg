@@ -15,7 +15,8 @@ const svgen = (d3,jsondata={})=>{
     let svg = d3.select(document.body)
                     .append('svg')
                         .attr('width', svgwidth)
-                        .attr('height', svgheight);
+                        .attr('height', svgheight)
+                        .attr('xmlns', 'http://www.w3.org/2000/svg');
 
     if( jsondata.hasOwnProperty('bgcolor') ){
 
@@ -171,10 +172,9 @@ const svgen = (d3,jsondata={})=>{
 
     }
 
-    
-    console.log(svg.node().outerHTML)
+    //console.log(svg.node().outerHTML)
 
-    return svg.node().outerHTML;
+    return `<?xml version="1.0" encoding="utf-8"?>${svg.node().outerHTML}`;
 }
 
 
